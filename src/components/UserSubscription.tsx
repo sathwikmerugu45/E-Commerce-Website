@@ -117,7 +117,7 @@ const UserSubscription: React.FC = () => {
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Status:</span>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(subscription.subscription_status)}`}>
-            {subscription.subscription_status.replace('_', ' ').toUpperCase()}
+            {subscription.subscription_status?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}
           </span>
         </div>
 

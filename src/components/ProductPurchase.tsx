@@ -33,6 +33,11 @@ const ProductPurchase: React.FC<ProductPurchaseProps> = ({
         throw new Error('Failed to authenticate user');
       }
 
+      // Ensure we have a valid access token
+      if (!session.access_token) {
+        throw new Error('No access token available');
+      }
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`, {
         method: 'POST',
         headers: {

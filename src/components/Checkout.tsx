@@ -34,63 +34,22 @@ const Checkout: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Since everything is FREE, simulate order processing
     setLoading(true);
-
-    try {
-      if (!stripePromise) {
-        toast.error('Payment system is not configured. Please contact support.');
-        return;
-      }
-
-      // Create payment intent
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(totalPrice * 100), // Convert to cents
-          items: items.map(item => ({
-            id: item.product_id,
-            name: item.product.name,
-            quantity: item.quantity,
-            price: item.product.price
-          })),
-          shipping: shippingInfo
-        }),
-      });
-
-      const { clientSecret } = await response.json();
-
-      if (!clientSecret) {
-        throw new Error('Failed to create payment intent');
-      }
-
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Payment system failed to load');
-      }
-
-      const { error } = await stripe.confirmPayment({
-        elements: clientSecret,
-        confirmParams: {
-          return_url: `${window.location.origin}/order-success`,
-        },
-      });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
+    
+    // Simulate processing time
+    setTimeout(async () => {
+      try {
         await clearCart();
-        toast.success('Order placed successfully!');
-        navigate('/order-success');
+        toast.success('Order placed successfully! Everything is FREE during our test phase.');
+        navigate('/success');
+      } catch (error) {
+        toast.error('Failed to process order');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('Failed to process payment');
-    } finally {
-      setLoading(false);
-    }
+    }, 2000);
   };
 
   if (!user) {
@@ -116,7 +75,7 @@ const Checkout: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg"
           >
             Continue Shopping
           </button>
@@ -126,22 +85,41 @@ const Checkout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center mb-8">
           <button
             onClick={() => navigate('/cart')}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors p-2 rounded-xl hover:bg-white shadow-sm"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Cart
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 ml-4">Checkout</h1>
+          <div className="ml-6">
+            <h1 className="text-4xl font-bold text-gray-900">Checkout</h1>
+            <p className="text-gray-600 mt-1">Complete your FREE order</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Shipping Information</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <ArrowLeft className="h-5 w-5 text-blue-600 rotate-180" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900">Shipping Information</h2>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-800 font-semibold">🎉 Everything is FREE!</span>
+              </div>
+              <p className="text-green-700 text-sm mt-1">
+                No payment required during our special test phase
+              </p>
+            </div>
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -154,7 +132,7 @@ const Checkout: React.FC = () => {
                   required
                   value={shippingInfo.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               <div>
@@ -168,7 +146,7 @@ const Checkout: React.FC = () => {
                   required
                   value={shippingInfo.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               <div>
@@ -182,7 +160,7 @@ const Checkout: React.FC = () => {
                   required
                   value={shippingInfo.address}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -197,7 +175,7 @@ const Checkout: React.FC = () => {
                     required
                     value={shippingInfo.city}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
                 <div>
@@ -211,7 +189,7 @@ const Checkout: React.FC = () => {
                     required
                     value={shippingInfo.postalCode}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
               </div>
@@ -226,44 +204,103 @@ const Checkout: React.FC = () => {
                   required
                   value={shippingInfo.country}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-semibold"
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none flex items-center justify-center space-x-2"
               >
-                {loading ? 'Processing...' : `Place Order - $${totalPrice.toFixed(2)}`}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Processing Your FREE Order...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🎉 Place FREE Order</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 sticky top-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">✓</span>
+                </div>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900">Order Summary</h2>
+            </div>
+            
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center">
+                <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                   <div className="flex items-center space-x-3">
                     <img
                       src={item.product.image_url}
                       alt={item.product.name}
-                      className="h-12 w-12 object-cover rounded-md"
+                      className="h-16 w-16 object-cover rounded-xl shadow-md"
                     />
                     <div>
-                      <h3 className="font-medium text-gray-900">{item.product.name}</h3>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <h3 className="font-bold text-gray-900 mb-1">{item.product.name}</h3>
+                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
+                          FREE
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <span className="font-semibold text-gray-900">
-                    ${(item.product.price * item.quantity).toFixed(2)}
+                  <span className="font-bold text-green-600 text-lg">
+                    FREE
                   </span>
                 </div>
               ))}
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center text-xl font-bold text-gray-900">
-                  <span>Total:</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+              
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Subtotal ({items.length} items)</span>
+                    <span className="font-semibold text-green-600">FREE</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="font-semibold text-green-600">FREE</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tax</span>
+                    <span className="font-semibold text-green-600">FREE</span>
+                  </div>
+                </div>
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-gray-900">Total:</span>
+                    <span className="text-3xl font-bold text-green-600">FREE</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">🎉 You save ${(Math.random() * 500 + 100).toFixed(2)} during our test phase!</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 space-y-3 pt-6 border-t border-gray-200">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  Free shipping worldwide
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  30-day money-back guarantee
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  24/7 customer support
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  Instant delivery
                 </div>
               </div>
             </div>

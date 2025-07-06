@@ -60,7 +60,12 @@ Deno.serve(async (req) => {
     }
 
     const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader ? authHeader.replace('Bearer ', '') : null;
+    
+    if (!token) {
+      return corsResponse({ error: 'No authorization token provided' }, 401);
+    }
+    
     const {
       data: { user },
       error: getUserError,
