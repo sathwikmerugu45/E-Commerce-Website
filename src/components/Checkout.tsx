@@ -3,6 +3,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
+import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 
@@ -11,7 +12,7 @@ const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   : null;
 
 const Checkout: React.FC = () => {
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -35,21 +36,77 @@ const Checkout: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Since everything is FREE, simulate order processing
+    if (!user) {
+      toast.error('Please sign in to complete your order');
+      return;
+    }
+
+    if (items.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
     setLoading(true);
     
-    // Simulate processing time
-    setTimeout(async () => {
-      try {
-        await clearCart();
-        toast.success('Order placed successfully! Everything is FREE during our test phase.');
-        navigate('/success');
-      } catch (error) {
-        toast.error('Failed to process order');
-      } finally {
-        setLoading(false);
+    try {
+      // Get the current user's session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Failed to authenticate user');
       }
-    }, 2000);
+
+      // Create line items for Stripe
+      const lineItems = items.map(item => ({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.product.name,
+            description: `Quantity: ${item.quantity}`,
+            images: [item.product.image_url],
+          },
+          unit_amount: 0, // $0.00 for test phase
+        },
+        quantity: item.quantity,
+      }));
+
+      // Create checkout session
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          line_items: lineItems,
+          customer_email: user.email,
+          success_url: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/checkout`,
+          metadata: {
+            user_id: user.id,
+            shipping_info: JSON.stringify(shippingInfo),
+            cart_items: JSON.stringify(items.map(item => ({
+              product_id: item.product_id,
+              quantity: item.quantity,
+              price: item.product.price
+            })))
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to start checkout process');
+      setLoading(false);
+    }
   };
 
   if (!user) {

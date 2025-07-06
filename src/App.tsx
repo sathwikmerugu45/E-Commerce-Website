@@ -9,6 +9,7 @@ import Auth from './components/Auth';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import SuccessPage from './components/SuccessPage';
+import OrderHistory from './components/OrderHistory';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,6 +26,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/success" element={<SuccessPage />} />
+              <Route path="/orders" element={<OrderHistory />} />
             </Routes>
             <Toaster position="top-right" />
           </div>

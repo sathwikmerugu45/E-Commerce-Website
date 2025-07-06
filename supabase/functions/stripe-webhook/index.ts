@@ -54,6 +54,15 @@ Deno.serve(async (req) => {
 });
 
 async function handleEvent(event: Stripe.Event) {
+  console.log('Processing webhook event:', event.type);
+  
+  // Handle checkout session completed
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    await handleCheckoutCompleted(session);
+    return;
+  }
+  
   const stripeData = event?.data?.object ?? {};
 
   if (!stripeData) {
@@ -124,6 +133,79 @@ async function handleEvent(event: Stripe.Event) {
   }
 }
 
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  try {
+    console.log('Handling checkout completion for session:', session.id);
+    
+    const userId = session.metadata?.user_id;
+    const shippingInfo = session.metadata?.shipping_info;
+    const cartItems = session.metadata?.cart_items;
+    
+    if (!userId) {
+      console.error('No user_id in session metadata');
+      return;
+    }
+
+    // Parse cart items and shipping info
+    const items = cartItems ? JSON.parse(cartItems) : [];
+    const shipping = shippingInfo ? JSON.parse(shippingInfo) : {};
+    
+    // Create order in our database
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: userId,
+        total_amount: (session.amount_total || 0) / 100, // Convert from cents
+        status: 'completed',
+        payment_intent_id: session.payment_intent as string,
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error('Error creating order:', orderError);
+      return;
+    }
+
+    console.log('Created order:', order.id);
+
+    // Create order items
+    if (items.length > 0) {
+      const orderItems = items.map((item: any) => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        console.error('Error creating order items:', itemsError);
+        return;
+      }
+
+      console.log('Created order items for order:', order.id);
+    }
+
+    // Clear user's cart
+    const { error: clearCartError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId);
+
+    if (clearCartError) {
+      console.error('Error clearing cart:', clearCartError);
+    } else {
+      console.log('Cleared cart for user:', userId);
+    }
+
+  } catch (error) {
+    console.error('Error handling checkout completion:', error);
+  }
+}
 // based on the excellent https://github.com/t3dotgg/stripe-recommendations
 async function syncCustomerFromStripe(customerId: string) {
   try {
