@@ -261,7 +261,7 @@ const SuccessPage: React.FC = () => {
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Thank You for Shopping With Us! 🛍️</h3>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
               We appreciate your business and hope you love your purchase. During our test phase, everything is completely FREE!
-            </h1>
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -295,62 +295,6 @@ const SuccessPage: React.FC = () => {
               support@shophub.com
             </a>
           </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default SuccessPage;
-            <p className="text-gray-600">
-              Thank you for your purchase. Your order has been processed successfully.
-            </p>
-          </div>
-
-          {sessionId && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-sm text-gray-600">
-                <strong>Session ID:</strong> {sessionId}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-4 mb-8">
-            <div className="flex items-center justify-center text-gray-700">
-              <Download className="h-5 w-5 text-blue-500 mr-2" />
-              <span>Access to your purchase is now available</span>
-            </div>
-            <div className="flex items-center justify-center text-gray-700">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              <span>Confirmation email sent to {user?.email}</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              to="/"
-              className="inline-flex items-center justify-center w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Continue Shopping
-            </Link>
-            
-            <Link
-              to="/orders"
-              className="inline-flex items-center justify-center w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
-            >
-              View Order History
-            </Link>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              Need help? Contact our support team at{' '}
-              <a href="mailto:support@shophub.com" className="text-blue-600 hover:text-blue-700">
-                support@shophub.com
-              </a>
-            </p>
-          </div>
         </div>
       </div>
     </div>
